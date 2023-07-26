@@ -6,6 +6,11 @@
 
   <title>Scrolling GIF Example</title>
   <style>
+
+    html{
+      scroll-behavior: smooth;
+
+    }
     body {
       background-image: url('gifs-reduced/bg.jpg');
       margin: 0;
@@ -52,6 +57,9 @@
     const layerImage = {};
     const totalFrames = 240; // Total number of frames available
     let imagesPreloaded = 0;
+    let isScrolling = false;
+    let animationFrame;
+    const updateInterval = 16; // Update every 16ms (approximately 60fps)
 
     // Function to preload images
     function preloadImages() {
@@ -71,12 +79,18 @@
       }
     }
 
-    function checkScroll() {
+    // Easing function for smooth acceleration and deceleration
+    function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+
+    function updateImage() {
+      isScrolling = false;
       const y = window.scrollY;
       const maxScroll = 1800; // Adjust this value to the maximum scroll height (body height)
 
-      // Calculate the ratio of scroll position to the maximum scroll height
-      const scrollRatio = y / (maxScroll * 2); // Require 2 scrolls per frame
+      // Calculate the ratio of scroll position to the maximum scroll height with easing
+      const scrollRatio = easeInOutQuad(y / (maxScroll * 2)); // Require 2 scrolls per frame
 
       // Calculate the scrollPixels based on the totalFrames and scrollRatio
       const scrollPixels = Math.floor(totalFrames * scrollRatio) + 1;
@@ -93,6 +107,20 @@
       $('.imageBox').css('background-image', `url('${imageToUse.src}')`);
       // Change opacity to 1 (fully visible)
       $('.imageBox').css('opacity', 1);
+    }
+
+    function checkScroll() {
+      if (!isScrolling) {
+        isScrolling = true;
+        updateImage();
+        // Request animation frames frequently during scrolling
+        animationFrame = requestAnimationFrame(() => {
+          setTimeout(() => {
+            cancelAnimationFrame(animationFrame);
+            checkScroll();
+          }, updateInterval);
+        });
+      }
     }
 
     function startScrollAnimation() {
