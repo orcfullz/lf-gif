@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+
+    <title>Scrolling GIF Example</title>
+    <style>
+      body {
+        background-image: url('gifs-reduced/bg.jpg');
+        margin: 0;
+        height: 5000px;
+      }
+
+      #target {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+
+      .imageBox {
+        width: 100%;
+        height: auto;
+        position: fixed;
+        background-size:cover;
+        min-height: 100vh;
+        opacity: 0; /* Start with 0 opacity */
+        transition: opacity 0.2s ease; /* Add a transition effect to smooth the opacity change */
+        background-repeat:no-repeat;
+      }
+
+      .slideOne {
+        display: flex;
+        justify-content: center;
+      }
+
+      .slideOne p {
+        font-weight: bold;
+        font-size: 25px;
+      }
+    </style>
+
+  </head>
+  <body>
+
+    <div data-aos="zoom-in">
+      <div id="target">
+        <div class="imageBox"></div>
+      </div>
+    </div>
+  
+    <script>
+      const layerImage = {};
+      const totalFrames = 240; // Total number of frames available
+      let imagesPreloaded = 0;
+
+      // Function to preload images
+      function preloadImages() {
+        for (let i = 1; i <= totalFrames; i++) {
+          const paddedNumber = i.toString().padStart(3, '0');
+          const filename = `gifs-reduced/LF Foundation_Stop Motion-${paddedNumber}.jpg`;
+          const img = new Image();
+          img.onload = () => {
+            imagesPreloaded++;
+            // Check if all images are preloaded before starting the animation
+            if (imagesPreloaded === totalFrames) {
+              startScrollAnimation();
+            }
+          };
+          img.src = filename;
+          layerImage[i] = img;
+        }
+      }
+
+      function checkScroll() {
+        const y = window.scrollY;
+        const maxScroll = 2500; // Adjust this value to the maximum scroll height (body height)
+
+        // Calculate the ratio of scroll position to the maximum scroll height
+        const scrollRatio = y / maxScroll;
+
+        // Calculate the scrollPixels based on the totalFrames and scrollRatio
+        const scrollPixels = Math.floor(totalFrames * scrollRatio) + 1;
+
+        // Limit scrollPixels to the range of available images (1 to 240)
+        const clampedScrollPixels = Math.min(Math.max(scrollPixels, 1), totalFrames);
+
+        console.log('Scroll Position:', y);
+        console.log('Scroll Pixels:', scrollPixels);
+        console.log('Clamped Scroll Pixels:', clampedScrollPixels);
+
+        const imageToUse = layerImage[clampedScrollPixels];
+        // Change the background image
+        $('.imageBox').css('background-image', `url('${imageToUse.src}')`);
+        // Change opacity to 1 (fully visible)
+        $('.imageBox').css('opacity', 1);
+      }
+
+      function startScrollAnimation() {
+        // Add the scroll event listener after preloading all images
+        $(window).scroll(() => {
+          checkScroll();
+        });
+      }
+
+      $(document).ready(() => {
+        preloadImages();
+      });
+    </script>
+  </body>
+</html>
